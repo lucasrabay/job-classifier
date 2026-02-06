@@ -1,0 +1,7 @@
+Dados
+Backend
+Frontend
+DevOps
+Mobile
+Produto
+Outro
