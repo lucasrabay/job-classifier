@@ -20,7 +20,7 @@ def resolve_raw_csv(args, data_dir: Path) -> Path:
     default_raw = data_dir / "data.csv"
     if args.scrape:
         bot = wwr.ExtratorVagasWWR(
-            base_url=args.base_url,
+            base_url=args.base_url or None,
             qtd_paginas=args.pages,
             max_vagas=args.max_jobs,
         )
@@ -43,9 +43,9 @@ def main() -> None:
     ap.add_argument("--data-dir", default="data")
     ap.add_argument("--plots-dir", default="plots")
     ap.add_argument("--text-col", default="descricao_texto")
-    ap.add_argument("--base-url", default="https://weworkremotely.com/remote-full-time-jobs")
-    ap.add_argument("--pages", type=int, default=2)
-    ap.add_argument("--max-jobs", type=int, default=120)
+    ap.add_argument("--base-url", default="", help="Single category URL, or empty to scrape all categories.")
+    ap.add_argument("--pages", type=int, default=5)
+    ap.add_argument("--max-jobs", type=int, default=500)
     ap.add_argument("--max-features", type=int, default=5000)
     ap.add_argument("--test-size", type=float, default=0.2)
     ap.add_argument("--max-rows", type=int, default=0)

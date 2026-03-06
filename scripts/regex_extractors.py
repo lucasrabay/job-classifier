@@ -34,7 +34,11 @@ EMAIL_RE = re.compile(r"\b[\w\.-]+@[\w\.-]+\.\w+\b", re.IGNORECASE)
 SKILLS = [
     "python","sql","spark","airflow","power bi","tableau","aws","gcp","azure","docker","kubernetes",
     "react","javascript","typescript","node","java","c#","go","rust","django","flask","fastapi",
-    "postgres","mysql","snowflake","databricks","dbt","etl","api","ci/cd","terraform", "rails", "ruby"
+    "postgres","mysql","snowflake","databricks","dbt","etl","api","ci/cd","terraform", "rails", "ruby",
+    "graphql","redis","mongodb","elasticsearch","kafka","next.js","vue","angular","svelte",
+    "flutter","swift","kotlin","react native","figma","selenium","cypress","playwright",
+    "pytorch","tensorflow","pandas","scikit-learn","jenkins","github actions","datadog",
+    "spring","laravel","php","scala",".net","rabbitmq","grpc",
 ]
 
 def _findall_clean(regex: re.Pattern, text: str) -> List[str]:

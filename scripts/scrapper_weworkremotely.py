@@ -13,13 +13,29 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 class ExtratorVagasWWR:
     """
     Scraper de vagas do We Work Remotely (WWR) usando BeautifulSoup.
-    - Lista: https://weworkremotely.com/remote-full-time-jobs?page=2  (paginação via ?page=) :contentReference[oaicite:3]{index=3}
-    - Links típicos de vagas: /remote-jobs/... :contentReference[oaicite:4]{index=4}
+    - Lista: https://weworkremotely.com/remote-full-time-jobs?page=2  (paginação via ?page=)
+    - Links típicos de vagas: /remote-jobs/...
+    - Suporta múltiplas categorias para maior cobertura de vagas.
     """
 
     DOMINIO = "https://weworkremotely.com"
 
-    def __init__(self, base_url, qtd_paginas=2, max_vagas=200):
+    CATEGORIAS = [
+        "https://weworkremotely.com/remote-full-time-jobs",
+        "https://weworkremotely.com/categories/remote-back-end-programming-jobs",
+        "https://weworkremotely.com/categories/remote-front-end-programming-jobs",
+        "https://weworkremotely.com/categories/remote-full-stack-programming-jobs",
+        "https://weworkremotely.com/categories/remote-devops-sysadmin-jobs",
+        "https://weworkremotely.com/categories/remote-design-jobs",
+        "https://weworkremotely.com/categories/remote-product-jobs",
+        "https://weworkremotely.com/categories/remote-customer-support-jobs",
+        "https://weworkremotely.com/categories/remote-finance-legal-jobs",
+        "https://weworkremotely.com/categories/remote-data-jobs",
+        "https://weworkremotely.com/categories/remote-business-exec-management-jobs",
+        "https://weworkremotely.com/categories/remote-marketing-jobs",
+    ]
+
+    def __init__(self, base_url=None, qtd_paginas=5, max_vagas=500):
         self.base_url = base_url
         self.qtd_paginas = qtd_paginas
         self.max_vagas = max_vagas
@@ -144,24 +160,33 @@ class ExtratorVagasWWR:
         }
 
     def raspar_vagas(self):
-        logging.info(f"Iniciando coleta WWR: {self.qtd_paginas} páginas (máx {self.max_vagas} vagas)...")
+        # If a single base_url was provided, use only that; otherwise scrape all categories
+        fontes = [self.base_url] if self.base_url else self.CATEGORIAS
+        logging.info(f"Iniciando coleta WWR: {len(fontes)} fonte(s), {self.qtd_paginas} páginas cada (máx {self.max_vagas} vagas)...")
         urls_vagas = []
 
-        # 1) Coleta links das páginas de listagem
-        for pagina in range(1, self.qtd_paginas + 1):
-            url_atual = f"{self.base_url}?page={pagina}"
-            logging.info(f"Acessando listagem: {url_atual}")
-
-            soup = self._obter_html(url_atual)
-            if not soup:
-                continue
-
-            links = self._extrair_links_listagem(soup)
-            logging.info(f"Encontrados {len(links)} links de vagas na página {pagina}")
-            urls_vagas.extend(links)
-
+        # 1) Coleta links das páginas de listagem (múltiplas categorias)
+        for base in fontes:
             if len(urls_vagas) >= self.max_vagas:
                 break
+            for pagina in range(1, self.qtd_paginas + 1):
+                url_atual = f"{base}?page={pagina}"
+                logging.info(f"Acessando listagem: {url_atual}")
+
+                soup = self._obter_html(url_atual)
+                if not soup:
+                    continue
+
+                links = self._extrair_links_listagem(soup)
+                logging.info(f"Encontrados {len(links)} links de vagas na página {pagina}")
+                urls_vagas.extend(links)
+
+                if len(urls_vagas) >= self.max_vagas:
+                    break
+
+                # Se a página retornou poucos links, provavelmente não há mais páginas
+                if len(links) < 5:
+                    break
 
         # dedup
         urls_vagas = list(dict.fromkeys(urls_vagas))[: self.max_vagas]
@@ -198,9 +223,7 @@ class ExtratorVagasWWR:
 
 
 if __name__ == "__main__":
-    # Fonte com paginação confirmada (?page=2) :contentReference[oaicite:6]{index=6}
-    url_alvo = "https://weworkremotely.com/remote-full-time-jobs"
-
-    bot = ExtratorVagasWWR(base_url=url_alvo, qtd_paginas=2, max_vagas=120)
+    # base_url=None scrapes all categories for maximum coverage
+    bot = ExtratorVagasWWR(base_url=None, qtd_paginas=5, max_vagas=500)
     bot.raspar_vagas()
     bot.salvar_csv("data.csv")
